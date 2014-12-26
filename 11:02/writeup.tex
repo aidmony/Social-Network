@@ -1,0 +1,30 @@
+\NeedsTeXFormat{LaTeX2e}
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathpartir}
+\usepackage{graphicx}
+\usepackage{comment}
+
+
+\input{macro}
+
+\title{Information diffusion as a control model}
+\date{\today}
+\begin{document}
+\maketitle
+\begin{enumerate}
+\item Consider the discrete time step. Let $X_{t} = [p_{1}^{(t)}, \dots, p_{n}^{(t)}]^{\top}$, where each $p_{i}^{(t)}$ denote the probability that node $i$ has been activated by time step $t$.
+\item For all pair of nodes $i,j$, $\alpha_{j,i}$ is a parameter modeling how frequent information spread from $j$ to $i$. $\alpha_{j,i}=0$ means no link.  
+\item Let $f(t_{i}|t_{j}; \alpha_{j,i})$ be the conditional likelihood of transmission from $j$ to $i$. e.g., $f$ can be the pdf of exp, pow, ray distributions.
+\item $p_{i}^{(t+1)} = p_{1}^{(t)} + (1-p_{1}^{(t)})\delta_{i}^{t+1} $, where $\delta_{i}^{t+1}$ denote the probability that node $i$ is activated during $t$ to $t+1$.
+\item Let $F_{i}^{(t+1)} (t_{j}; \alpha_{j,i}) = \int_t^{t+1} \! f(t_{i}|t_{j}; \alpha_{j,i}) \, \mathrm{d}t_{i}$. Notice these $F_{i}^{(t+1)} (t_{j}; \alpha_{j,i})$ can be precomputed.
+Let $F_{i}^{(t+1)}(j;\alpha_{j,i}) = \Sigma_{t_j=1}^{t} F_{i}^{(t+1)} (t_{j}; \alpha_{j,i}) \cdot Pr(\text{j is activated at $t_{j}$})$. Then, $\delta_{i}^{(t+1)} = 1- \Pi_{j\neq i} (1- F_{i}^{(t+1)}(j;\alpha_{j,i}))$.
+\item $Pr(\text{j is activated at $t_{j}$})$ can be calculated from $X_{1}, \dots, X_{t}$. Specifically, $Pr(\text{j is activated at $t_{j}$}) = p_{j}^{t_{j}}\Pi_{t<t_{j}} (1-p_{j}^{t})$.
+\item Control inputs can be (1) observing some nodes be activated; (2) modifying $\alpha_{j,i}$.
+\item Evaluation
+\end{enumerate}
+
+\end{document}

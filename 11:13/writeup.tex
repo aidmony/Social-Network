@@ -1,0 +1,103 @@
+\NeedsTeXFormat{LaTeX2e}
+\documentclass[11pt]{article}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{mathpartir}
+\usepackage{graphicx}
+\usepackage{comment}
+
+
+\input{macro}
+
+\title{Information diffusion as a control model}
+\date{\today}
+\begin{document}
+\maketitle
+\section{Introduction}
+We consider the problem of controlling the information diffusion in social networks. A social network can be seen as a directed graph $G=(V,E)$. Each node in the $G$ can be seen as a user and each directed edge can be seen as a relationship. Let $|V|=n$ and $|E|=m$. We can assume $m = O(n)$ for a social network $G$ (Sparsity assumption). 
+
+Information diffusion is the general problem on how information propagates in a social network. Let a message be initially distributed from a set of nodes (small number) in $G$. It is interesting to study how wide/fast/much cost this message spread over $G$. 
+\section{Information Diffusion Model}
+We present our model of information diffusion based on [Rodriguez 14]. We consider the context where a message is distributed from one node to another at discrete time steps $\{t\}_{t\in{\mathbb{N}}} $. When a message is spread from a node $j$ at time $t_{j}$, it can reach each of its neighbor node $i$ at any time afterwards ($i$ is a neighbor node of $j$ if $(j,i) \in E$). This message transmission may or may not succeed at any given time $> t_{j}$. But when it does succeed at time $\bar{t_{i}}$, $t_{i}-1<\bar{t_{i}} \leq t_{i}$, node $i$ will be ready to spread this message to its own neighbors at the next time step $t_{i}$. In that case, we say node $i$ is {\bf activated} at $t_{i}$. 
+  
+
+For every pair of node $(j,i)$, we model the transmission of message from $j$ to $i$ by a pdf. Namely, let $\cf{j}{i}$ be the pdf that $i$ is activated at $t_{i}$ by a message from $j$ conditioned on that $j$ is activated at time $t_{j}$, where $\alpha_{j,i}$ is a coefficient parameter of $\cf{j}{i}$ representing the transmission rate from $j$ to $i$. Notice that $\cf{j}{i}$ should be $0$ whenever $t_{i} \geq t_{j}$ or $\alpha_{j,i}=0$ (there is no edge from $j$ to $i$). Three popular models for this transmission distribution are shown below.
+\begin{enumerate}
+\item Exp. \[ \cf{j}{i} = \left\{ 
+  \begin{array}{l l}
+    \alpha_{j,i}\cdot e^{-\alpha_{j,i} (t_{i}-t_{j})} & \quad \text{if $t_{i}>t_{j}$}\\
+    0 & \quad \text{otherwise}
+  \end{array} \right.\]
+\item Pow. \[ \cf{j}{i} = \left\{ 
+  \begin{array}{l l}
+   \frac{\alpha_{j,i}}{\delta} (\frac{t_{i}-t_{j}}{\delta})^{-1-\alpha_{j,i}} & \quad \text{if $t_{i}>t_{j}+\delta$}\\
+    0 & \quad \text{otherwise}
+  \end{array} \right.\]
+\item Ray. \[ \cf{j}{i} = \left\{ 
+  \begin{array}{l l}
+   \alpha_{j,i}(t_{i}t-{j})e^{-\frac{1}{2}\alpha_{j,i}(t_{i}-t{j})^{2}} & \quad \text{if $t_{i}>t_{j}$}\\
+    0 & \quad \text{otherwise}
+  \end{array} \right.\]
+\end{enumerate} 
+Based on the above probabilistic transmission model, we model the information diffusion by a discrete sequence of $\{X_{t}\}_{t \in {\mathbb{N}}}$, where $X_{t}=[x_{1}^{(t)}, x_{2}^{(t)} , \dots , x_{n}^{(t)}]^{\top}$ with each $x_{i}^{(t)}$ representing the probability that node $i$ {\bf has been activated} at time $t$ ($i$ could be activated at any time $\leq t$).
+
+\section{Model with perfect information}
+Assume an agent has perfect information about this model. That is, the agent knows all $\alpha_{j,i}$, $\cf{j}{i}$ and keeps record of $X_{1}, \dots , X_{t}$. Then, he can precisely compute $X_{t+1}$ by the following algorithm.
+\begin{enumerate}
+\item For each node $i \in [n]$, we have 
+\begin{equation}\label{activate_time}
+x_{i}^{(t+1)} = x_{i}^{(t)} + (1-x_{i}^{(t)})P_{i}^{t+1},
+\end{equation}
+where $P_{i}^{t+1}$ denote the probability that node $i$ is activated at $t+1$.
+\item To compute $P_{i}^{t+1}$, we need to consider the transmission from each $j$ with $\alpha_{j,i}\neq 0$. For an arbitrary node $j$, the probability that $i$ is activated at $t+1$ due to the transmission from $j$ conditioned on that $j$ is activated at time $t_{j}$ is 
+\begin{equation}\label{condition_activate}
+F^{(t+1)} (i\,|\,t_{j}; \alpha_{j,i}) = \int_t^{t+1} \! f(t_{i}|t_{j}; \alpha_{j,i}) \, \mathrm{d}t_{i}.
+\end{equation}
+Hence, the probability that $i$ is activated at $t+1$ due to the transmission from $j$ is the summation of this conditional probability.
+\begin{equation}
+ F^{(t+1)}(i\,|\,\alpha_{j,i}) = \Sigma_{t_j=1}^{t} F^{(t+1)} (i\,|\,t_{j}; \alpha_{j,i}) \cdot P_{j}^{(t_{j})}.
+ \end{equation}
+ We assume each message transmission is independent. Then, $P_{i}^{t+1}$ can be computed by the following equation.
+\begin{equation} 
+P_{i}^{(t+1)} = 1- \Pi_{j: \alpha_{j,i} \neq 0} (1- F^{(t+1)}(i\,|\,\alpha_{j,i})).
+\end{equation}
+\item Given $X_{t}$ and $X_{t-1}$, each $P_{i}^{t}$ can be easily computed by Equation~\ref{activate_time}. For all $t, i, j$, $F^{(t)} (i\,|\,t_{j})$ can be precomputed by Equation~\ref{condition_activate}.
+\end{enumerate}
+\section{Model with a controller}
+Now, let's assume there is an outside controller who wants to manipulate the information diffusion. 
+
+First, consider the case when the controller wants to reinforce the information diffusion. The goal is to spread a message to certain degree (e.g. The average probability achieves certain threshold) by minimum utility and time cost. Let $t$ denote the time step that the goal is accomplished. Specifically, we consider the goal that can be written as the following form.
+\begin{equation}
+AX_{t} \geq B
+\end{equation} 
+\begin{enumerate}
+\item What the controller can do is to make some of the central nodes (e.g. a social media) in the network ``broadcast" the message. Let $I \subseteq V$ be the set of central nodes, where $|I|=k$. Such central node $j$ usually have a lot of neighboring nodes $i$. When $j$ make a broadcast at time $t_{j}$, it acts like it is ``reactivated". That is, $j$ will spread the message to each of its neighbor $i$ following some distribution $g$, where $\cg{j}{i}$ is the pdf that $i$ is activated at $t_{i}$ by a message from $j$ conditioned on $j$ is broadcasting at $t_{j}$. We assume all broadcasting and regular message transmission operates independently.
+\item Making $j$ broadcast the message comes with a utility cost, which depends on its ``centrality" $\gamma_{j}$. This centrality $\gamma_{j}$ can be simply the degree of $j$, or any relevant measures that represent its power in terms of spreading the message. We use $u_{t}(\gamma_{j})$ to denote the utility cost of making $j$ broadcast at time $t$, where $u_{t}$ is some time-dependent function. Let $b_{t}(j)$ be the decision indicator of whether or not making node $j$ broadcast at time $t$. (As an easy extension, we can allow $b_{t}(j)$ to be a probabilistic decision, where $b_{t}(j) \in [0,1]$ indicating the probability of making $j$ broadcast at time $t$.)
+\[ b_{t}(j) = \left\{ 
+  \begin{array}{l l}
+    1 & \quad \text{if make $j$ broadcast at time $t$}\\
+    0 & \quad \text{otherwise}
+  \end{array} \right.\]
+Then, the total utility cost to time $t$ is the follows.
+\begin{equation}
+\Sigma_{l=1}^{t} \Sigma_{j \in I} u_{t}(\gamma_{j})b_{t}(j)
+\end{equation}
+\item We also consider a general time cost $\mu(t)$, where $\mu$ is some monotonically increasing function. The information diffusion controlling problem can be represented by the following optimization problem.
+\[
+\begin{array}{l l}
+    min & \quad \Sigma_{l=1}^{t} \Sigma_{j \in I} u_{t}(\gamma_{j})b_{t}(j) + \mu(t)\\
+    \text{such that} & \quad AX_{t} \geq B
+  \end{array}
+\]
+\end{enumerate}
+
+
+\section{Model with a controller and Imperfect information}
+In practice, perfect information is often infeasible in social networks. It is very difficult to either access or store all there data. Therefore, the controlling the information diffusion with imperfect information is a more meaningful problem.
+
+In terms of imperfect information, we can assume that the controller only knows a small subset of $\alpha_{j,i}$, $\cf{j}{i}$, and only keep record of $\{Y_{t}\}, Y_{t} \subseteq X_{t}$, where $|Y_{t}| <<n$.
+
+
+\end{document}
